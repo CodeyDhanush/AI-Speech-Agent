@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>VoiceGateway — Enterprise AI Operations</title>
+<meta name="description" content="Enterprise Voice AI Gateway — real-time call monitoring, agent management, analytics and audit."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #090e1a;
+  --surface: #0f1829;
+  --card: #131f35;
+  --card2: #18263e;
+  --border: #1e304f;
+  --accent: #3b82f6;
+  --accent2: #6366f1;
+  --accent3: #8b5cf6;
+  --green: #10b981;
+  --yellow: #f59e0b;
+  --red: #ef4444;
+  --text: #e2e8f0;
+  --muted: #64748b;
+  --dim: #94a3b8;
+  --glow: rgba(59,130,246,0.18);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--surface)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* ── Layout ── */
+.shell{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+
+/* ── Sidebar ── */
+.sidebar{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:0 0 24px}
+.logo{padding:28px 24px 20px;border-bottom:1px solid var(--border)}
+.logo-mark{display:flex;align-items:center;gap:10px}
+.logo-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent3));display:flex;align-items:center;justify-content:center;font-size:18px}
+.logo-text{font-weight:800;font-size:15px;letter-spacing:-.3px}
+.logo-sub{font-size:10px;color:var(--muted);font-weight:500;letter-spacing:.5px;text-transform:uppercase}
+.nav{padding:16px 12px;flex:1}
+.nav-section{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;padding:0 12px 8px;margin-top:16px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:500;color:var(--dim);transition:.15s;margin-bottom:2px;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:var(--card);color:var(--text)}
+.nav-item.active{background:linear-gradient(135deg,rgba(59,130,246,.18),rgba(99,102,241,.12));color:var(--accent);border:1px solid rgba(59,130,246,.2)}
+.nav-item span{font-size:16px}
+.status-badge{margin:auto 12px 0;padding:10px 14px;border-radius:10px;background:var(--card);border:1px solid var(--border);font-size:12px}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;margin-right:6px;box-shadow:0 0 6px var(--green)}
+
+/* ── Main ── */
+.main{display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.topbar-title{font-size:18px;font-weight:700}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.live-indicator{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--green);font-weight:600;padding:6px 12px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:20px}
+.pulse{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
+.btn{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:'Inter',sans-serif;transition:.15s}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px)}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--dim)}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.btn-danger{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);color:var(--red)}
+
+/* ── Content ── */
+.content{flex:1;overflow-y:auto;padding:24px 28px}
+.page{display:none}
+.page.active{display:block}
+
+/* ── KPI Cards ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;position:relative;overflow:hidden;transition:.2s}
+.kpi::before{content:'';position:absolute;top:-40px;right:-40px;width:100px;height:100px;border-radius:50%;opacity:.08}
+.kpi:nth-child(1)::before{background:var(--accent)}
+.kpi:nth-child(2)::before{background:var(--green)}
+.kpi:nth-child(3)::before{background:var(--yellow)}
+.kpi:nth-child(4)::before{background:var(--accent3)}
+.kpi-label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px}
+.kpi-value{font-size:32px;font-weight:800;line-height:1}
+.kpi-sub{font-size:12px;color:var(--muted);margin-top:6px}
+.kpi-icon{position:absolute;top:18px;right:18px;font-size:22px;opacity:.5}
+
+/* ── Grid layouts ── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+.col-span-2{grid-column:span 2}
+
+/* ── Cards ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.card-title{font-size:13px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.4px}
+.card-badge{font-size:11px;padding:3px 8px;border-radius:12px;background:rgba(59,130,246,.12);color:var(--accent);border:1px solid rgba(59,130,246,.2)}
+
+/* ── Live Call List ── */
+.call-row{display:grid;grid-template-columns:1fr 1fr 120px 100px 90px;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;background:var(--card2);border:1px solid var(--border);margin-bottom:8px;transition:.15s}
+.call-row:hover{border-color:rgba(59,130,246,.3)}
+.call-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:12px}
+.call-status.active{background:rgba(16,185,129,.1);color:var(--green);border:1px solid rgba(16,185,129,.2)}
+.call-status.ringing{background:rgba(245,158,11,.1);color:var(--yellow);border:1px solid rgba(245,158,11,.2)}
+.call-status.on-hold{background:rgba(99,102,241,.1);color:var(--accent2);border:1px solid rgba(99,102,241,.2)}
+.caller-info .number{font-weight:600;font-size:13.5px}
+.caller-info .dir{font-size:11px;color:var(--muted)}
+
+/* ── Table ── */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:10px 14px;border-bottom:1px solid var(--border)}
+tbody tr{border-bottom:1px solid rgba(30,48,79,.5);transition:.1s}
+tbody tr:hover{background:rgba(59,130,246,.04)}
+tbody td{padding:11px 14px;color:var(--dim)}
+tbody td:first-child{color:var(--text);font-weight:500}
+
+/* ── Sentiment chips ── */
+.chip{display:inline-block;padding:3px 9px;border-radius:10px;font-size:11px;font-weight:600}
+.chip.positive{background:rgba(16,185,129,.1);color:var(--green)}
+.chip.neutral{background:rgba(100,116,139,.15);color:var(--muted)}
+.chip.negative{background:rgba(239,68,68,.1);color:var(--red)}
+.chip.inbound{background:rgba(59,130,246,.1);color:var(--accent)}
+.chip.outbound{background:rgba(139,92,246,.1);color:var(--accent3)}
+
+/* ── Chart container ── */
+.chart-container{position:relative;height:200px}
+
+/* ── Agents ── */
+.agent-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.agent-card{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:16px;transition:.2s}
+.agent-card:hover{border-color:rgba(59,130,246,.3);transform:translateY(-2px)}
+.agent-header{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.agent-avatar{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent3));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#fff}
+.agent-name{font-weight:700;font-size:14px}
+.agent-dept{font-size:11px;color:var(--muted)}
+.agent-key{display:inline-block;background:var(--card);border:1px solid var(--border);padding:2px 8px;border-radius:6px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--accent)}
+.agent-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.agent-stat{background:var(--card);border-radius:8px;padding:8px 10px}
+.agent-stat-label{font-size:10px;color:var(--muted);margin-bottom:2px}
+.agent-stat-value{font-size:15px;font-weight:700}
+.prompt-preview{margin-top:10px;font-size:11.5px;color:var(--dim);line-height:1.5;padding:10px;background:var(--card);border-radius:8px;border:1px solid var(--border);font-family:'JetBrains Mono',monospace}
+.toggle{cursor:pointer;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;border:none;transition:.15s}
+.toggle.on{background:rgba(16,185,129,.1);color:var(--green)}
+.toggle.off{background:rgba(239,68,68,.1);color:var(--red)}
+
+/* ── Transcript ── */
+.transcript-box{max-height:400px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:4px}
+.msg{max-width:80%;padding:10px 14px;border-radius:14px;font-size:13px;line-height:1.5}
+.msg.user{align-self:flex-end;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:14px 14px 4px 14px}
+.msg.assistant{align-self:flex-start;background:var(--card2);border:1px solid var(--border);border-radius:14px 14px 14px 4px}
+.msg-meta{font-size:10px;opacity:.6;margin-top:4px}
+
+/* ── Audit Log ── */
+.audit-row{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid rgba(30,48,79,.5)}
+.audit-icon{width:30px;height:30px;border-radius:8px;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.audit-event{font-weight:600;font-size:13px}
+.audit-time{font-size:11px;color:var(--muted)}
+
+/* ── Modal ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:100}
+.modal-bg.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:28px;width:560px;max-width:95vw;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:18px;font-weight:800;margin-bottom:20px}
+.form-group{margin-bottom:16px}
+.form-label{font-size:12px;font-weight:600;color:var(--dim);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px}
+.form-input,.form-textarea,.form-select{width:100%;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:13px;font-family:'Inter',sans-serif;outline:none;transition:.15s}
+.form-textarea{resize:vertical;min-height:100px;font-family:'JetBrains Mono',monospace;font-size:12px}
+.form-input:focus,.form-textarea:focus,.form-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+.form-select option{background:var(--card)}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 18px;font-size:13px;font-weight:500;box-shadow:0 8px 32px rgba(0,0,0,.4);z-index:200;transform:translateY(80px);opacity:0;transition:.3s}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{border-color:rgba(16,185,129,.4);color:var(--green)}
+.toast.error{border-color:rgba(239,68,68,.4);color:var(--red)}
+
+/* ── Outbound form ── */
+.outbound-form{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}
+.outbound-form .form-group{margin-bottom:0;flex:1;min-width:160px}
+
+/* ── Empty state ── */
+.empty{text-align:center;padding:48px 24px;color:var(--muted)}
+.empty-icon{font-size:40px;margin-bottom:12px}
+.empty-text{font-size:14px}
+
+/* ── Section header ── */
+.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.section-title{font-size:15px;font-weight:700}
+
+/* misc */
+.mono{font-family:'JetBrains Mono',monospace;font-size:12px}
+.text-muted{color:var(--muted)}
+.text-accent{color:var(--accent)}
+.mt-4{margin-top:16px}
+.mb-4{margin-bottom:16px}
+hr{border:none;border-top:1px solid var(--border);margin:16px 0}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ════════════════════ SIDEBAR ════════════════════ -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-mark">
+      <div class="logo-icon">🎙️</div>
+      <div>
+        <div class="logo-text">VoiceGateway</div>
+        <div class="logo-sub">Enterprise AI</div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <div class="nav-section">Operations</div>
+    <button class="nav-item active" onclick="navigate('overview')" id="nav-overview">
+      <span>📊</span> Overview
+    </button>
+    <button class="nav-item" onclick="navigate('live')" id="nav-live">
+      <span>📞</span> Live Calls
+    </button>
+    <button class="nav-item" onclick="navigate('calls')" id="nav-calls">
+      <span>📋</span> Call Records
+    </button>
+
+    <div class="nav-section">Management</div>
+    <button class="nav-item" onclick="navigate('agents')" id="nav-agents">
+      <span>🤖</span> AI Agents
+    </button>
+    <button class="nav-item" onclick="navigate('outbound')" id="nav-outbound">
+      <span>📤</span> Outbound
+    </button>
+
+    <div class="nav-section">Compliance</div>
+    <button class="nav-item" onclick="navigate('analytics')" id="nav-analytics">
+      <span>📈</span> Analytics
+    </button>
+    <button class="nav-item" onclick="navigate('audit')" id="nav-audit">
+      <span>🔒</span> Audit Log
+    </button>
+  </nav>
+
+  <div class="status-badge">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <span><span class="status-dot"></span>Gateway Online</span>
+      <span class="text-muted" style="font-size:11px" id="live-count">0 live</span>
+    </div>
+    <div style="margin-top:6px;font-size:11px;color:var(--muted)" id="server-url">Connecting…</div>
+  </div>
+</aside>
+
+<!-- ════════════════════ MAIN ════════════════════ -->
+<div class="main">
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-title" id="page-title">Operations Overview</div>
+    <div class="topbar-right">
+      <div class="live-indicator"><span class="pulse"></span> Live</div>
+      <button class="btn btn-primary" onclick="openModal('outboundModal')">+ Outbound Call</button>
+    </div>
+  </header>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- ── OVERVIEW ── -->
+    <section class="page active" id="page-overview">
+      <div class="kpi-grid" id="kpi-grid">
+        <div class="kpi">
+          <div class="kpi-label">Calls Today</div>
+          <div class="kpi-value" id="kpi-today">—</div>
+          <div class="kpi-sub">Total inbound + outbound</div>
+          <div class="kpi-icon">📞</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Completed</div>
+          <div class="kpi-value" id="kpi-completed">—</div>
+          <div class="kpi-sub">Successfully resolved</div>
+          <div class="kpi-icon">✅</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Avg Duration</div>
+          <div class="kpi-value" id="kpi-duration">—</div>
+          <div class="kpi-sub">Seconds per call</div>
+          <div class="kpi-icon">⏱️</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Active Now</div>
+          <div class="kpi-value" id="kpi-active">—</div>
+          <div class="kpi-sub">Live call sessions</div>
+          <div class="kpi-icon">🔴</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card col-span-2">
+          <div class="card-header">
+            <div class="card-title">Call Volume — Last 7 Days</div>
+            <div class="card-badge">Daily</div>
+          </div>
+          <div class="chart-container">
+            <canvas id="volumeChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Sentiment</div></div>
+          <div class="chart-container" style="height:160px">
+            <canvas id="sentimentChart"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Department Load</div></div>
+          <div class="chart-container" style="height:160px">
+            <canvas id="deptChart"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Live Status</div></div>
+          <div id="live-stats-box" style="padding:8px 0">
+            <div class="audit-row" style="border:none;padding:6px 0">
+              <div class="audit-icon">📞</div>
+              <div><div class="audit-event">Active Calls</div><div id="ls-active" class="audit-time">—</div></div>
+            </div>
+            <div class="audit-row" style="border:none;padding:6px 0">
+              <div class="audit-icon">⬇️</div>
+              <div><div class="audit-event">Inbound</div><div id="ls-inbound" class="audit-time">—</div></div>
+            </div>
+            <div class="audit-row" style="border:none;padding:6px 0">
+              <div class="audit-icon">⬆️</div>
+              <div><div class="audit-event">Outbound</div><div id="ls-outbound" class="audit-time">—</div></div>
+            </div>
+            <div class="audit-row" style="border:none;padding:6px 0">
+              <div class="audit-icon">⏸️</div>
+              <div><div class="audit-event">On Hold</div><div id="ls-hold" class="audit-time">—</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── LIVE CALLS ── -->
+    <section class="page" id="page-live">
+      <div class="section-hdr">
+        <div class="section-title">Live Call Monitor</div>
+        <button class="btn btn-outline" onclick="loadLive()">↻ Refresh</button>
+      </div>
+      <div id="live-calls-list">
+        <div class="empty"><div class="empty-icon">📵</div><div class="empty-text">No active calls</div></div>
+      </div>
+    </section>
+
+    <!-- ── CALL RECORDS ── -->
+    <section class="page" id="page-calls">
+      <div class="section-hdr">
+        <div class="section-title">Call Records</div>
+        <div style="display:flex;gap:8px">
+          <select class="form-select" style="width:140px" id="call-status-filter" onchange="loadCalls()">
+            <option value="">All Status</option>
+            <option value="completed">Completed</option>
+            <option value="active">Active</option>
+            <option value="failed">Failed</option>
+            <option value="busy">Busy</option>
+          </select>
+          <button class="btn btn-outline" onclick="loadCalls()">↻ Refresh</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Caller</th>
+                <th>Direction</th>
+                <th>Agent/Dept</th>
+                <th>Duration</th>
+                <th>Sentiment</th>
+                <th>Status</th>
+                <th>Started</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="calls-tbody">
+              <tr><td colspan="8" class="empty-text" style="text-align:center;padding:32px">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px">
+          <span class="text-muted" id="calls-count" style="font-size:12px"></span>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-outline" id="btn-prev" onclick="prevPage()">← Prev</button>
+            <button class="btn btn-outline" id="btn-next" onclick="nextPage()">Next →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── AGENTS ── -->
+    <section class="page" id="page-agents">
+      <div class="section-hdr">
+        <div class="section-title">AI Agents</div>
+        <button class="btn btn-primary" onclick="openModal('agentModal')">+ New Agent</button>
+      </div>
+      <div class="agent-grid" id="agent-grid">
+        <div class="empty" style="grid-column:span 2"><div class="empty-icon">🤖</div><div class="empty-text">Loading agents…</div></div>
+      </div>
+    </section>
+
+    <!-- ── OUTBOUND ── -->
+    <section class="page" id="page-outbound">
+      <div class="section-hdr">
+        <div class="section-title">Outbound Call Center</div>
+      </div>
+      <div class="card mb-4">
+        <div class="card-header"><div class="card-title">Launch AI-Driven Call</div></div>
+        <div class="outbound-form">
+          <div class="form-group">
+            <label class="form-label">Destination Number</label>
+            <input class="form-input" id="ob-number" placeholder="+91xxxxxxxxxx"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Assign Agent</label>
+            <select class="form-select" id="ob-agent">
+              <option value="0">0 — General Inquiries</option>
+              <option value="1">1 — Customer Support</option>
+              <option value="2">2 — Sales</option>
+              <option value="3">3 — Technical Support</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="makeOutbound()" style="margin-bottom:0;height:40px">📤 Call Now</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Recent Outbound Calls</div></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>To</th><th>Agent</th><th>Duration</th><th>Sentiment</th><th>Status</th><th>Time</th></tr></thead>
+            <tbody id="outbound-tbody">
+              <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── ANALYTICS ── -->
+    <section class="page" id="page-analytics">
+      <div class="section-hdr">
+        <div class="section-title">Analytics & Insights</div>
+        <select class="form-select" style="width:120px" id="days-filter" onchange="loadAnalytics()">
+          <option value="7">7 Days</option>
+          <option value="14">14 Days</option>
+          <option value="30">30 Days</option>
+        </select>
+      </div>
+      <div class="grid-2 mb-4">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Volume Trend</div></div>
+          <div class="chart-container"><canvas id="analyticsVolumeChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Calls by Department</div></div>
+          <div class="chart-container"><canvas id="analyticsDeptChart"></canvas></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Performance Metrics</div></div>
+        <table>
+          <thead><tr><th>Agent</th><th>Department</th><th>Calls Handled</th><th>Status</th></tr></thead>
+          <tbody id="perf-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── AUDIT ── -->
+    <section class="page" id="page-audit">
+      <div class="section-hdr">
+        <div class="section-title">Security & Compliance Audit Log</div>
+        <button class="btn btn-outline" onclick="loadAudit()">↻ Refresh</button>
+      </div>
+      <div class="card">
+        <div id="audit-list">
+          <div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Loading audit log…</div></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════ MODALS ════════════════════ -->
+
+<!-- Transcript Modal -->
+<div class="modal-bg" id="transcriptModal">
+  <div class="modal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div class="modal-title" id="transcript-title">Call Transcript</div>
+      <button class="btn btn-outline" onclick="closeModal('transcriptModal')">✕ Close</button>
+    </div>
+    <div id="transcript-summary" class="card mb-4" style="display:none;padding:12px"></div>
+    <div class="card">
+      <div class="transcript-box" id="transcript-messages"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Agent Modal -->
+<div class="modal-bg" id="agentModal">
+  <div class="modal">
+    <div class="modal-title">New AI Agent</div>
+    <div class="form-group">
+      <label class="form-label">Agent Name</label>
+      <input class="form-input" id="ag-name" placeholder="e.g. Aria"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Department</label>
+      <input class="form-input" id="ag-dept" placeholder="e.g. Customer Support"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">DTMF Key (IVR)</label>
+      <input class="form-input" id="ag-key" placeholder="e.g. 4" maxlength="2"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">System Prompt</label>
+      <textarea class="form-textarea" id="ag-prompt" placeholder="You are a professional AI assistant for…" rows="5"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('agentModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="createAgent()">Create Agent</button>
+    </div>
+  </div>
+</div>
+
+<!-- Outbound Modal (quick) -->
+<div class="modal-bg" id="outboundModal">
+  <div class="modal">
+    <div class="modal-title">📤 Place Outbound Call</div>
+    <div class="form-group">
+      <label class="form-label">Phone Number</label>
+      <input class="form-input" id="ob-modal-number" placeholder="+91xxxxxxxxxx"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Assign Agent</label>
+      <select class="form-select" id="ob-modal-agent">
+        <option value="0">0 — General Inquiries</option>
+        <option value="1">1 — Customer Support</option>
+        <option value="2">2 — Sales</option>
+        <option value="3">3 — Technical Support</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('outboundModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="makeOutboundModal()">📞 Call Now</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════
+const API = '';
+let currentPage = 1;
+let totalCallPages = 1;
+let ws = null;
+let volumeChart, sentimentChart, deptChart, analyticsVolumeChart, analyticsDeptChart;
+let agentMap = {};
+
+// ════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════
+const PAGE_TITLES = {
+  overview:'Operations Overview', live:'Live Call Monitor',
+  calls:'Call Records', agents:'AI Agents',
+  outbound:'Outbound Center', analytics:'Analytics',audit:'Audit Log'
+};
+
+function navigate(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.getElementById('nav-' + id)?.classList.add('active');
+  document.getElementById('page-title').textContent = PAGE_TITLES[id] || id;
+
+  if (id === 'overview') { loadDashboard(); loadCharts(); }
+  if (id === 'live') loadLive();
+  if (id === 'calls') loadCalls();
+  if (id === 'agents') loadAgents();
+  if (id === 'outbound') { loadOutbound(); }
+  if (id === 'analytics') loadAnalytics();
+  if (id === 'audit') loadAudit();
+}
+
+// ════════════════════════════════════════════════
+// WEBSOCKET
+// ════════════════════════════════════════════════
+function connectWS() {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  ws = new WebSocket(`${proto}://${location.host}/api/ws/live`);
+  ws.onopen = () => {
+    document.getElementById('server-url').textContent = location.host;
+  };
+  ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    handleWSEvent(msg.event, msg.data);
+  };
+  ws.onclose = () => setTimeout(connectWS, 3000);
+  ws.onerror = () => ws.close();
+}
+
+function handleWSEvent(event, data) {
+  if (event === 'init') {
+    updateLiveSidebar(data.stats);
+    if (document.getElementById('page-live').classList.contains('active')) buildLiveList(data.live_calls);
+  }
+  if (event === 'call_started' || event === 'call_updated') {
+    loadDashboard();
+    if (document.getElementById('page-live').classList.contains('active')) loadLive();
+  }
+  if (event === 'call_ended') {
+    loadDashboard();
+    if (document.getElementById('page-live').classList.contains('active')) loadLive();
+    if (document.getElementById('page-calls').classList.contains('active')) loadCalls();
+  }
+}
+
+function updateLiveSidebar(stats) {
+  if (!stats) return;
+  document.getElementById('live-count').textContent = stats.active_calls + ' live';
+  document.getElementById('ls-active').textContent = stats.active_calls;
+  document.getElementById('ls-inbound').textContent = stats.inbound;
+  document.getElementById('ls-outbound').textContent = stats.outbound;
+  document.getElementById('ls-hold').textContent = stats.on_hold;
+  document.getElementById('kpi-active').textContent = stats.active_calls;
+}
+
+// ════════════════════════════════════════════════
+// DASHBOARD
+// ════════════════════════════════════════════════
+async function loadDashboard() {
+  try {
+    const d = await api('/api/dashboard');
+    document.getElementById('kpi-today').textContent = d.calls_today;
+    document.getElementById('kpi-completed').textContent = d.calls_completed;
+    document.getElementById('kpi-duration').textContent = d.avg_duration_seconds + 's';
+    document.getElementById('kpi-active').textContent = d.live?.active_calls ?? 0;
+    updateLiveSidebar(d.live);
+    updateSentimentChart(d.sentiment);
+  } catch(e) { console.error(e); }
+}
+
+async function loadCharts() {
+  await loadVolumeChart();
+  await loadDeptOverviewChart();
+}
+
+async function loadVolumeChart() {
+  const data = await api('/api/analytics/calls-over-time?days=7');
+  const labels = data.map(d => d.date);
+  const counts = data.map(d => d.count);
+
+  if (volumeChart) volumeChart.destroy();
+  volumeChart = new Chart(document.getElementById('volumeChart'), {
+    type:'line',
+    data:{
+      labels,
+      datasets:[{
+        label:'Calls', data:counts, borderColor:'#3b82f6',
+        backgroundColor:'rgba(59,130,246,.08)', fill:true,
+        pointBackgroundColor:'#3b82f6', tension:.4, borderWidth:2,
+      }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:'rgba(30,48,79,.5)'},ticks:{color:'#64748b'}},
+              y:{grid:{color:'rgba(30,48,79,.5)'},ticks:{color:'#64748b',stepSize:1}}}
+    }
+  });
+}
+
+function updateSentimentChart(sentiment) {
+  if (!sentiment) return;
+  if (sentimentChart) sentimentChart.destroy();
+  sentimentChart = new Chart(document.getElementById('sentimentChart'), {
+    type:'doughnut',
+    data:{
+      labels:['Positive','Neutral','Negative'],
+      datasets:[{
+        data:[sentiment.positive||0, sentiment.neutral||0, sentiment.negative||0],
+        backgroundColor:['rgba(16,185,129,.7)','rgba(100,116,139,.5)','rgba(239,68,68,.7)'],
+        borderColor:['#10b981','#64748b','#ef4444'], borderWidth:1,
+      }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom', labels:{color:'#94a3b8',font:{size:11}}}},
+    }
+  });
+}
+
+async function loadDeptOverviewChart() {
+  const data = await api('/api/analytics/department-breakdown');
+  if (deptChart) deptChart.destroy();
+  deptChart = new Chart(document.getElementById('deptChart'), {
+    type:'bar',
+    data:{
+      labels: data.map(d => d.name),
+      datasets:[{
+        data: data.map(d => d.calls),
+        backgroundColor:'rgba(99,102,241,.6)', borderColor:'#6366f1', borderWidth:1, borderRadius:6,
+      }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{x:{grid:{display:false},ticks:{color:'#64748b'}},
+              y:{grid:{color:'rgba(30,48,79,.5)'},ticks:{color:'#64748b',stepSize:1}}}
+    }
+  });
+}
+
+// ════════════════════════════════════════════════
+// LIVE CALLS
+// ════════════════════════════════════════════════
+async function loadLive() {
+  const d = await api('/api/dashboard');
+  buildLiveList(d.live_calls || []);
+}
+
+function buildLiveList(calls) {
+  const el = document.getElementById('live-calls-list');
+  if (!calls.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📵</div><div class="empty-text">No active calls right now</div></div>';
+    return;
+  }
+  el.innerHTML = calls.map(c => `
+    <div class="call-row">
+      <div class="caller-info">
+        <div class="number">${c.caller}</div>
+        <div class="dir">${c.direction} · ${c.turn_count} turns</div>
+      </div>
+      <div>
+        <div style="font-weight:600;font-size:13px">${c.agent_name}</div>
+        <div style="font-size:11px;color:var(--muted)">${c.department}</div>
+      </div>
+      <div><span class="call-status ${c.status}">${statusDot(c.status)} ${c.status}</span></div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:13px">${fmtDuration(c.duration)}</div>
+      <div style="font-size:11px;color:var(--muted)">${c.call_sid.slice(0,12)}…</div>
+    </div>
+  `).join('');
+}
+
+// ════════════════════════════════════════════════
+// CALL RECORDS
+// ════════════════════════════════════════════════
+async function loadCalls() {
+  const status = document.getElementById('call-status-filter').value;
+  const url = `/api/calls?page=${currentPage}&page_size=15${status ? '&status='+status : ''}`;
+  const d = await api(url);
+  totalCallPages = Math.ceil(d.total / 15) || 1;
+
+  document.getElementById('calls-count').textContent = `${d.total} total records`;
+
+  const tbody = document.getElementById('calls-tbody');
+  if (!d.calls.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--muted)">No records found</td></tr>';
+    return;
+  }
+
+  // populate agent map
+  const agents = await api('/api/agents');
+  agents.forEach(a => agentMap[a.id] = a);
+
+  tbody.innerHTML = d.calls.map(c => {
+    const ag = agentMap[c.agent_id];
+    return `<tr>
+      <td class="mono">${c.caller}</td>
+      <td><span class="chip ${c.direction}">${c.direction}</span></td>
+      <td>${ag ? ag.name : '—'}<br><span style="font-size:10px;color:var(--muted)">${ag ? ag.department : ''}</span></td>
+      <td>${c.duration ? fmtDuration(c.duration) : '—'}</td>
+      <td>${c.sentiment ? `<span class="chip ${c.sentiment}">${c.sentiment}</span>` : '—'}</td>
+      <td><span class="chip ${statusColor(c.status)}">${c.status}</span></td>
+      <td style="font-size:11px">${fmtDate(c.started_at)}</td>
+      <td><button class="btn btn-outline" style="font-size:11px;padding:4px 10px" onclick="showTranscript('${c.id}','${c.caller}')">Transcript</button></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('btn-prev').disabled = currentPage <= 1;
+  document.getElementById('btn-next').disabled = currentPage >= totalCallPages;
+}
+
+function prevPage() { if (currentPage > 1) { currentPage--; loadCalls(); } }
+function nextPage() { if (currentPage < totalCallPages) { currentPage++; loadCalls(); } }
+
+// ════════════════════════════════════════════════
+// TRANSCRIPT
+// ════════════════════════════════════════════════
+async function showTranscript(callId, caller) {
+  const d = await api(`/api/calls/${callId}/transcript`);
+  document.getElementById('transcript-title').textContent = `Transcript — ${caller}`;
+  const sumEl = document.getElementById('transcript-summary');
+  if (d.summary) {
+    sumEl.innerHTML = `<div style="font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600">AI SUMMARY</div>
+      <div style="font-size:13px">${d.summary}</div>
+      ${d.sentiment ? `<span class="chip ${d.sentiment}" style="margin-top:8px;display:inline-block">${d.sentiment}</span>` : ''}`;
+    sumEl.style.display = 'block';
+  } else { sumEl.style.display = 'none'; }
+
+  const box = document.getElementById('transcript-messages');
+  if (!d.messages.length) {
+    box.innerHTML = '<div class="empty"><div class="empty-icon">💬</div><div class="empty-text">No transcript available</div></div>';
+  } else {
+    box.innerHTML = d.messages.map(m => `
+      <div class="msg ${m.role}">
+        ${m.content}
+        <div class="msg-meta">${m.role.toUpperCase()} · ${fmtDate(m.timestamp)}${m.confidence ? ' · conf: '+m.confidence : ''}</div>
+      </div>
+    `).join('');
+  }
+  openModal('transcriptModal');
+}
+
+// ════════════════════════════════════════════════
+// AGENTS
+// ════════════════════════════════════════════════
+async function loadAgents() {
+  const agents = await api('/api/agents');
+  const grid = document.getElementById('agent-grid');
+  if (!agents.length) {
+    grid.innerHTML = '<div class="empty" style="grid-column:span 2"><div class="empty-icon">🤖</div><div class="empty-text">No agents found</div></div>';
+    return;
+  }
+  grid.innerHTML = agents.map(a => `
+    <div class="agent-card">
+      <div class="agent-header">
+        <div class="agent-avatar">${a.name[0]}</div>
+        <div>
+          <div class="agent-name">${a.name}</div>
+          <div class="agent-dept">${a.department}</div>
+          <span class="agent-key">DTMF: ${a.dtmf_key}</span>
+        </div>
+        <button class="toggle ${a.is_active ? 'on' : 'off'}" onclick="toggleAgent('${a.id}',${!a.is_active})">${a.is_active ? 'Active' : 'Inactive'}</button>
+      </div>
+      <div class="agent-stats">
+        <div class="agent-stat"><div class="agent-stat-label">Calls Handled</div><div class="agent-stat-value">${a.calls_handled}</div></div>
+        <div class="agent-stat"><div class="agent-stat-label">Status</div><div class="agent-stat-value" style="color:${a.is_active ? 'var(--green)' : 'var(--red)'}">${a.is_active ? 'Online' : 'Offline'}</div></div>
+      </div>
+      <div class="prompt-preview">${a.system_prompt.slice(0,120)}…</div>
+    </div>
+  `).join('');
+}
+
+async function toggleAgent(id, active) {
+  await api(`/api/agents/${id}`, 'PATCH', { is_active: active });
+  loadAgents();
+  showToast(active ? 'Agent activated' : 'Agent deactivated', active ? 'success' : 'error');
+}
+
+async function createAgent() {
+  const payload = {
+    name: document.getElementById('ag-name').value,
+    department: document.getElementById('ag-dept').value,
+    dtmf_key: document.getElementById('ag-key').value,
+    system_prompt: document.getElementById('ag-prompt').value,
+  };
+  if (!payload.name || !payload.department || !payload.dtmf_key || !payload.system_prompt) {
+    showToast('Fill all fields', 'error'); return;
+  }
+  await api('/api/agents', 'POST', payload);
+  closeModal('agentModal');
+  loadAgents();
+  showToast('Agent created!', 'success');
+}
+
+// ════════════════════════════════════════════════
+// OUTBOUND
+// ════════════════════════════════════════════════
+async function loadOutbound() {
+  const d = await api('/api/calls?page=1&page_size=10');
+  const calls = d.calls.filter(c => c.direction === 'outbound');
+  const tbody = document.getElementById('outbound-tbody');
+  if (!calls.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">No outbound calls yet</td></tr>';
+    return;
+  }
+  const agents = await api('/api/agents');
+  agents.forEach(a => agentMap[a.id] = a);
+  tbody.innerHTML = calls.map(c => {
+    const ag = agentMap[c.agent_id];
+    return `<tr>
+      <td class="mono">${c.caller}</td>
+      <td>${ag ? ag.name : '—'}</td>
+      <td>${c.duration ? fmtDuration(c.duration) : '—'}</td>
+      <td>${c.sentiment ? `<span class="chip ${c.sentiment}">${c.sentiment}</span>` : '—'}</td>
+      <td><span class="chip ${statusColor(c.status)}">${c.status}</span></td>
+      <td style="font-size:11px">${fmtDate(c.started_at)}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function makeOutbound() {
+  const to = document.getElementById('ob-number').value;
+  const agent = document.getElementById('ob-agent').value;
+  if (!to) { showToast('Enter a phone number', 'error'); return; }
+  const body = new FormData();
+  body.append('to', to); body.append('agent_dtmf', agent);
+  const r = await fetch('/voice/outbound', { method:'POST', body });
+  const d = await r.json();
+  if (d.success) { showToast('Call initiated: ' + d.call_sid, 'success'); loadOutbound(); }
+  else showToast('Call failed: ' + d.detail, 'error');
+}
+
+async function makeOutboundModal() {
+  const to = document.getElementById('ob-modal-number').value;
+  const agent = document.getElementById('ob-modal-agent').value;
+  if (!to) { showToast('Enter a phone number', 'error'); return; }
+  const body = new FormData();
+  body.append('to', to); body.append('agent_dtmf', agent);
+  const r = await fetch('/voice/outbound', { method:'POST', body });
+  const d = await r.json();
+  if (d.success) { closeModal('outboundModal'); showToast('Call initiated!', 'success'); }
+  else showToast('Call failed: ' + d.detail, 'error');
+}
+
+// ════════════════════════════════════════════════
+// ANALYTICS
+// ════════════════════════════════════════════════
+async function loadAnalytics() {
+  const days = document.getElementById('days-filter').value;
+  const [vol, dept] = await Promise.all([
+    api(`/api/analytics/calls-over-time?days=${days}`),
+    api('/api/analytics/department-breakdown'),
+  ]);
+
+  if (analyticsVolumeChart) analyticsVolumeChart.destroy();
+  analyticsVolumeChart = new Chart(document.getElementById('analyticsVolumeChart'), {
+    type:'bar',
+    data:{
+      labels: vol.map(d => d.date),
+      datasets:[{
+        data: vol.map(d => d.count), label:'Calls',
+        backgroundColor:'rgba(59,130,246,.6)', borderColor:'#3b82f6', borderWidth:1, borderRadius:6,
+      }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{x:{grid:{display:false},ticks:{color:'#64748b'}},
+              y:{grid:{color:'rgba(30,48,79,.5)'},ticks:{color:'#64748b',stepSize:1}}}
+    }
+  });
+
+  if (analyticsDeptChart) analyticsDeptChart.destroy();
+  analyticsDeptChart = new Chart(document.getElementById('analyticsDeptChart'), {
+    type:'doughnut',
+    data:{
+      labels: dept.map(d => d.name),
+      datasets:[{
+        data: dept.map(d => d.calls),
+        backgroundColor:['rgba(59,130,246,.7)','rgba(16,185,129,.7)','rgba(245,158,11,.7)','rgba(139,92,246,.7)'],
+        borderWidth:1,
+      }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom', labels:{color:'#94a3b8',font:{size:11}}}},
+    }
+  });
+
+  const tbody = document.getElementById('perf-tbody');
+  tbody.innerHTML = dept.map(d => `
+    <tr>
+      <td>${d.name}</td><td>${d.department}</td>
+      <td>${d.calls}</td>
+      <td><span class="chip positive">Active</span></td>
+    </tr>
+  `).join('');
+}
+
+// ════════════════════════════════════════════════
+// AUDIT LOG
+// ════════════════════════════════════════════════
+async function loadAudit() {
+  const data = await api('/api/audit?page=1&page_size=50');
+  const el = document.getElementById('audit-list');
+  if (!data.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No audit events yet</div></div>';
+    return;
+  }
+  const icons = { call_initiated:'📞', agent_assigned:'🤖', call_ended:'✅', error:'❌' };
+  el.innerHTML = data.map(l => `
+    <div class="audit-row">
+      <div class="audit-icon">${icons[l.event] || '📋'}</div>
+      <div style="flex:1">
+        <div class="audit-event">${l.event.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}</div>
+        <div class="audit-time">${l.details ? JSON.stringify(l.details) : ''} · ${fmtDate(l.timestamp)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ════════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════════
+async function api(url, method='GET', body=null) {
+  const opts = { method, headers:{'Content-Type':'application/json'} };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(API + url, opts);
+  if (!r.ok) { const e = await r.text(); throw new Error(e); }
+  return r.json();
+}
+
+function fmtDuration(s) {
+  if (!s) return '—';
+  const m = Math.floor(s/60), sec = Math.round(s%60);
+  return m > 0 ? `${m}m ${sec}s` : `${sec}s`;
+}
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+}
+
+function statusDot(s) {
+  return s === 'active' ? '🟢' : s === 'ringing' ? '🟡' : '🔵';
+}
+
+function statusColor(s) {
+  return s === 'completed' ? 'positive' : s === 'active' ? 'inbound' : s === 'failed' ? 'negative' : 'neutral';
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// Close modal on backdrop click
+document.querySelectorAll('.modal-bg').forEach(bg =>
+  bg.addEventListener('click', e => { if(e.target===bg) bg.classList.remove('open'); })
+);
+
+// ════════════════════════════════════════════════
+// BOOT
+// ════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  connectWS();
+  loadDashboard();
+  loadCharts();
+  // Auto-refresh every 30s
+  setInterval(loadDashboard, 30000);
+});
+</script>
+</body>
+</html>
