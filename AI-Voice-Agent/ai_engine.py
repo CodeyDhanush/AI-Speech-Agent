@@ -7,7 +7,7 @@ import uuid
 import asyncio
 import tempfile
 from pathlib import Path
-from typing import Optional
+from typing import Optional 
 from loguru import logger
 
 from config import settings
@@ -211,5 +211,6 @@ def text_to_speech_file(text: str, lang: str = "en") -> Optional[str]:
     except Exception as e:
         logger.error(f"TTS error: {e}")
         return None
+
 
 
