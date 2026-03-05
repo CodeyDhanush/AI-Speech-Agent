@@ -14,7 +14,7 @@ from config import settings
 # ── Engine ────────────────────────────────────────────────
 engine = create_async_engine(
     settings.database_url,
-    echo=False,
+    echo=False, 
     connect_args={"check_same_thread": False},
 )
 
@@ -164,3 +164,4 @@ async def init_db():
             ]
             session.add_all(default_agents)
             await session.commit()
+
