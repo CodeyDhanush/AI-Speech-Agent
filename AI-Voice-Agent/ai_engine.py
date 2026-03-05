@@ -17,7 +17,7 @@ try:
     import openai
     _openai_client = openai.AsyncOpenAI(api_key=settings.openai_api_key)
     _has_openai = bool(settings.openai_api_key)
-except ImportError:
+except ImportError: 
     _has_openai = False
 
 try: 
@@ -211,4 +211,5 @@ def text_to_speech_file(text: str, lang: str = "en") -> Optional[str]:
     except Exception as e:
         logger.error(f"TTS error: {e}")
         return None
+
 
